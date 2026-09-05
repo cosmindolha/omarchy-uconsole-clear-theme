@@ -33,6 +33,14 @@ fi
 voxtype setup --download --model base --no-post-install
 export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
 voxtype setup systemd
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+python3 -c 'import evdev' || { echo 'Install python-evdev for the gamepad shortcut.' >&2; exit 1; }
+mkdir -p "$HOME/.local/bin" "$HOME/.config/systemd/user"
+install -m755 "$script_dir/../gui/uconsole-dictation-button" "$HOME/.local/bin/"
+install -m644 "$script_dir/../gui/uconsole-dictation-button.service" "$HOME/.config/systemd/user/"
+systemctl --user daemon-reload
+systemctl --user enable uconsole-dictation-button.service
+systemctl --user restart uconsole-dictation-button.service
 hyprctl reload || true
 voxtype info devices
-echo 'Installed. With the Clear keyboard toolkit: Left Alt+D starts/stops dictation. Connect a microphone and select it as the default input. Existing Voxtype settings are retained.'
+echo 'Installed. With the Clear keyboard toolkit: Hold gamepad A to record; release to transcribe. Left Alt+D also toggles dictation. Connect a microphone and select it as the default input. Existing Voxtype settings are retained.'

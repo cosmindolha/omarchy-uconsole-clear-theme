@@ -28,13 +28,14 @@ For the **base yellow theme alone**, use Omarchy's Install → Style → Theme w
 - **Either Alt + Space:** Omarchy menu. Style → Theme colors opens the editor.
 - **Left Alt + Enter:** terminal. **Left Alt + K:** physical keyboard guide.
 - **Left Alt + T:** Activity / btop, fullscreen at 13 pt with zero terminal padding (98×24 cells on the tested screen). All four panels fit; Q closes it. Normal terminal fonts remain unchanged.
+- **Right Alt + Q:** close the focused app. Left Alt + Q also works.
 - **Either Alt + Shift + K:** complete searchable shortcut list.
 - **Left Alt + Tab:** next app. **Right Alt + Tab:** next workspace.
 - **Hold speaker + D-pad Up / Down:** volume changes in 5% steps; holding repeats. **Fn + speaker:** mute.
 - **Fn + comma / period:** one actual backlight level down/up. **Fn + Space:** keyboard lighting.
 - **Either Alt + L:** manual lock. Automatic locking is delayed to one hour; display blanking follows the lock.
 
-Right Alt becomes Super on the onboard keyboard. The speaker key becomes a held modifier on its separate consumer-control interface. The other keyboards retain their mappings. Left Alt alternatives can override an application's own Alt shortcuts. Stock game-button behavior is retained.
+Right Alt becomes Super on the onboard keyboard. The speaker key becomes a held modifier on its separate consumer-control interface. The other keyboards retain their mappings. Left Alt alternatives can override an application's own Alt shortcuts. Game-button behavior is retained; with optional Voxtype installed, gamepad A also controls dictation.
 
 The consumer-control device uses `resolve_binds_by_sym = true` so Hyprland matches its remapped modifier symbol. Without this, the original volume-down keycode can still trigger the stock repeating binding when the speaker key is held alone. See [Hyprland's symbol matching documentation](https://wiki.hypr.land/configuring/core/binds/keyboard-layouts/).
 
@@ -46,7 +47,7 @@ The guide lists commands on the left and highlights the physical keys on the rig
 
 Run `./scripts/install-voxtype.sh` as the desktop user to install the checksum-verified official [Voxtype 1.0.1 ARM64 CPU build](https://github.com/peteonrails/voxtype/releases/tag/v1.0.1), download the multilingual Whisper base model, and enable the user service. New configurations use automatic language detection and four CPU threads; existing configurations are retained. This is optional and is not part of the theme installer.
 
-Connect a USB microphone and select it as the default audio input. **Left Alt + D** starts recording; press it again to transcribe and type into the focused text field. The physical keyboard guide includes this shortcut. Speech recognition runs locally. Check `voxtype status`, `voxtype info devices`, and `journalctl --user -u voxtype` for diagnostics. A speaker-output monitor is not a microphone.
+Connect a USB microphone and select it as the default audio input. **Hold gamepad A** while speaking, then release it to transcribe and type into the focused text field. **Left Alt + D** remains a toggle alternative. The gamepad listener requires `python-evdev` and read access to the onboard gamepad (the tested user belongs to `input`). It recognizes the stock 20230713 firmware button code 289, independent of the ordinary typing A key, and reconnects after USB reattachment. The physical keyboard guide includes this shortcut. Speech recognition runs locally. Check `voxtype status`, `voxtype info devices`, and `journalctl --user -u voxtype` for diagnostics. A speaker-output monitor is not a microphone.
 
 ## Accent editor
 

@@ -1,0 +1,13 @@
+[Unit]
+Description=uConsole gamepad A push-to-talk for Voxtype
+PartOf=graphical-session.target
+After=voxtype.service
+Wants=voxtype.service
+
+[Service]
+ExecStart=%h/.local/bin/uconsole-dictation-button
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target

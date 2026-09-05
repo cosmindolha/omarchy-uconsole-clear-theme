@@ -1,0 +1,78 @@
+#!/usr/bin/python3
+"""Use the onboard gamepad A button for Voxtype push-to-talk."""
+import logging
+import select
+import signal
+import subprocess
+import time
+
+import evdev
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+DEVICE_NAME = "ClockworkPI uConsole"
+# Verified on stock 20230713 firmware: physical gamepad A, not keyboard KEY_A.
+BUTTON = evdev.ecodes.BTN_THUMB
+running = True
+
+
+def command(action):
+    result = subprocess.run(["voxtype", "record", action], capture_output=True, text=True, timeout=5)
+    if result.returncode:
+        logging.warning("Voxtype %s failed: %s", action, result.stderr.strip())
+    return result.returncode == 0
+
+
+def stop_service(*_):
+    global running
+    running = False
+
+
+def listen(device):
+    held = False
+    recording = False
+    logging.info("Listening for gamepad A on %s", device.path)
+    try:
+        while running:
+            if not select.select([device], [], [], 0.25)[0]:
+                continue
+            for event in device.read():
+                if event.type != evdev.ecodes.EV_KEY or event.code != BUTTON:
+                    continue
+                if event.value == 1 and not held:
+                    held = True
+                    status = subprocess.run(["voxtype", "status"], capture_output=True, text=True, timeout=5)
+                    if status.returncode == 0 and status.stdout.strip() == "idle":
+                        recording = command("start")
+                        if recording:
+                            logging.info("Gamepad A pressed: recording")
+                elif event.value == 0:
+                    held = False
+                    if recording:
+                        if command("stop"):
+                            recording = False
+                            logging.info("Gamepad A released: transcribing")
+    finally:
+        # Never leave an owned recording running after USB disconnect/service stop.
+        if recording:
+            command("cancel")
+        device.close()
+
+
+if __name__ == "__main__":
+    signal.signal(signal.SIGTERM, stop_service)
+    signal.signal(signal.SIGINT, stop_service)
+    while running:
+        try:
+            selected = None
+            for path in evdev.list_devices():
+                device = evdev.InputDevice(path)
+                if device.name == DEVICE_NAME and BUTTON in device.capabilities().get(evdev.ecodes.EV_KEY, []):
+                    selected = device
+                    break
+                device.close()
+            if selected:
+                listen(selected)
+        except (OSError, subprocess.SubprocessError) as error:
+            logging.warning("Gamepad dictation: %s", error)
+        if running:
+            time.sleep(1)

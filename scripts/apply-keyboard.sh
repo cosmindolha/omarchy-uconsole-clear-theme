@@ -32,6 +32,14 @@ Icon=input-keyboard
 Categories=Utility;Accessibility;
 Terminal=false
 EOF
+install -m755 "$stage/uconsole-dictation-button" "$HOME/.local/bin/"
+mkdir -p "$HOME/.config/systemd/user"
+install -m644 "$stage/uconsole-dictation-button.service" "$HOME/.config/systemd/user/"
+systemctl --user daemon-reload
+if command -v voxtype >/dev/null && python3 -c 'import evdev' 2>/dev/null; then
+  systemctl --user enable uconsole-dictation-button.service
+  systemctl --user restart uconsole-dictation-button.service
+fi
 hyprctl -i 0 reload
 errors=$(hyprctl -i 0 configerrors)
 if [[ -n $errors ]]; then printf '%s\n' "$errors" >&2; exit 1; fi
