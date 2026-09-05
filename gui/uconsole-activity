@@ -1,3 +1,27 @@
-#!/bin/bash
-# Use the full handheld display while using a dedicated 13 pt font to fit btop's minimum 24 rows.
-exec /usr/share/omarchy/bin/omarchy-launch-or-focus 'org.uconsole.activity' 'foot --fullscreen --app-id=org.uconsole.activity --override=pad=0x0 --override="font=JetBrainsMono Nerd Font:size=13" -e btop'
+#!/usr/bin/python3
+"""Open/focus btop and enforce the handheld's usable terminal size."""
+import json
+import subprocess
+import time
+
+def clients():
+    return json.loads(subprocess.check_output(['hyprctl','-j','clients'],text=True))
+
+def find():
+    return next((w for w in clients() if w['class']=='org.uconsole.activity'),None)
+
+window=find()
+if window is None:
+    subprocess.Popen(['foot','--fullscreen','--app-id=org.uconsole.activity',
+                      '--override=pad=0x0','--override=font=JetBrainsMono Nerd Font:size=13','-e','btop'],
+                     start_new_session=True,stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    deadline=time.monotonic()+5
+    while window is None and time.monotonic()<deadline:
+        time.sleep(.1)
+        window=find()
+if window is None: raise SystemExit('Activity window did not open.')
+selector=json.dumps('address:'+window['address'])
+for dispatch in [f'hl.dsp.focus({{window={selector}}})',
+                 f'hl.dsp.window.fullscreen({{mode="fullscreen",action="set",window={selector}}})']:
+    result=subprocess.check_output(['hyprctl','dispatch',dispatch],text=True).strip()
+    if result!='ok': raise SystemExit(result)
