@@ -67,6 +67,20 @@ The bar shows measured voltage. Clicking it opens voltage, current, computed bat
 
 This is a reporting fix, **not a completed fuel-gauge calibration**. See [battery diagnosis and calibration](docs/BATTERY.md). Other applications may still display the kernel's uncalibrated percentage.
 
+## Screensaver
+
+The ARM RC1 image does not include `ttfx`. Its original screensaver loops on the missing command and only checks keyboard input while the renderer runs, leaving a fullscreen error window. The toolkit supplies a user-owned launcher and runner that check the dependency, stop on renderer failure, restore the cursor on exit, and cap animation at 30 FPS. System → Screensaver uses this runner. Esc or another key dismisses it; mouse-click reporting is enabled too.
+
+Build the upstream renderer natively on the ARM64 uConsole with Rust/Cargo 1.90 or newer, Git and a C compiler installed:
+
+```bash
+bash scripts/install-ttfx.sh
+```
+
+The recipe pins [ttfx v0.3.2](https://github.com/omacom-io/ttfx/releases/tag/v0.3.2), checks its commit, builds with `Cargo.lock`, and installs to `/usr/local/bin`. No binary is bundled here; rebuilding for a future version is explicit. The toolkit installation itself does not install a Rust toolchain or build ttfx automatically. If the renderer is absent, the menu reports that and exits before opening a fullscreen window.
+
+Verified on the real CM5: native ARM build, animated fullscreen rendering, launch through the new menu command, and Escape returning to the previous app with the cursor visible. Automated regression checks cover absent and failing renderers. The existing automatic-screensaver toggle and one-hour lock settings are preserved; this fixes manual launch without enabling automatic animation.
+
 ## Display and implementation
 
 Designed for the 5-inch 1280×720 display at scale 1.25 (1024×576 logical). Shell text is 20 px, terminal text 15 pt, cursor size 30. Browser utilities compensate for the inherited GTK text scale so controls fit without shrinking their usable text.

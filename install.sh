@@ -30,6 +30,7 @@ done
 bash "$stage/apply-readable-theme.sh"
 bash "$stage/apply-keyboard.sh"
 bash "$stage/apply-theme-editor.sh"
+bash "$stage/apply-screensaver.sh"
 case "$previous" in uconsole-clear*) omarchy-theme-set "$previous" ;; esac
 omarchy-restart-shell
 echo 'Installed. Alt+K opens the guide. Menu > Style > Theme colors opens the editor.'
