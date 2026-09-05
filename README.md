@@ -37,7 +37,7 @@ Right Alt becomes Super on the onboard keyboard. The speaker key becomes a held 
 
 ![Physical keyboard guide](screenshots/keyboard.png)
 
-The guide lists commands on the left and highlights the physical keys on the right. Normal keys are square. It prefers a modifier on the opposite side of the action key where possible, including Ctrl. Search a command or click a key to filter; use Up/Down to browse.
+The guide lists commands on the left and highlights the physical keys on the right. Normal keys are square. It prefers a modifier on the opposite side of the action key where possible, including Ctrl. Start typing to search immediately; the Find command field receives focus when the guide opens or regains focus. Typing after browsing commands also returns to search. Use Up/Down to browse and Esc to clear, or click a physical key to filter.
 
 ## Accent editor
 

@@ -144,8 +144,25 @@ function renderList(){
 }
 function filterKey(id){keyFilter=id==='fn-r'?'fn-l':id;category='All';search.value='';renderList();if(!visibleActions.length){document.querySelector('#keynote').textContent=id.startsWith('game-')?'Game buttons retain the stock firmware mode; they can also send ordinary letters.':'No listed shortcuts use this key.';}}
 function reset(){category='All';keyFilter='';search.value='';renderList();}clear.onclick=()=>{keyFilter='';renderList();};search.oninput=renderList;
-document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.closest('svg'))return;if(['ArrowDown','ArrowUp'].includes(e.key)&&visibleActions.length){e.preventDefault();const n=visibleActions.findIndex(a=>a.id===selected);choose(visibleActions[(n+(e.key==='ArrowDown'?1:-1)+visibleActions.length)%visibleActions.length].id);list.querySelector('.selected')?.scrollIntoView({block:'nearest'});}if(e.key==='Escape')reset();});
+function focusSearch(){search.focus({preventScroll:true});}
+window.addEventListener('focus',focusSearch);
+// Typing after browsing commands or clicking the diagram resumes the search.
+document.addEventListener('keydown',e=>{
+ if(e.ctrlKey||e.metaKey||e.altKey||e.isComposing||e.target===search||e.target.closest('input,textarea,[contenteditable=true]'))return;
+ const printable=e.key.length===1;
+ if(!printable&&e.key!=='Backspace')return;
+ // Space still activates a focused button or physical key with the keyboard.
+ if(e.key===' '&&e.target.closest('button,svg'))return;
+ e.preventDefault();
+ focusSearch();
+ let start=search.selectionStart,end=search.selectionEnd;
+ if(e.key==='Backspace'&&start===end)start=Math.max(0,start-1);
+ search.setRangeText(e.key==='Backspace'?'':e.key,start,end,'end');
+ renderList();
+},true);
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.closest('svg'))return;if(['ArrowDown','ArrowUp'].includes(e.key)&&visibleActions.length){e.preventDefault();const n=visibleActions.findIndex(a=>a.id===selected);choose(visibleActions[(n+(e.key==='ArrowDown'?1:-1)+visibleActions.length)%visibleActions.length].id);list.querySelector('.selected')?.scrollIntoView({block:'nearest'});}if(e.key==='Escape'){reset();focusSearch();}});
 renderList();
+focusSearch();
 // Expose the same physical mapping for focused validation and future additions.
 window.uconsoleGuide={keys,actions,keyIndex,choose,filterKey};
 </script>
