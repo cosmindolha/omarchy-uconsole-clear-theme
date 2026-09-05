@@ -42,6 +42,12 @@ The consumer-control device uses `resolve_binds_by_sym = true` so Hyprland match
 
 The guide lists commands on the left and highlights the physical keys on the right. Normal keys are square. It prefers a modifier on the opposite side of the action key where possible, including Ctrl. Start typing to search immediately; the Find command field receives focus when the guide opens or regains focus. Typing after browsing commands also returns to search. Use Up/Down to browse and Esc to clear, or click a physical key to filter.
 
+## Optional voice dictation
+
+Run `./scripts/install-voxtype.sh` as the desktop user to install the checksum-verified official [Voxtype 1.0.1 ARM64 CPU build](https://github.com/peteonrails/voxtype/releases/tag/v1.0.1), download the multilingual Whisper base model, and enable the user service. New configurations use automatic language detection and four CPU threads; existing configurations are retained. This is optional and is not part of the theme installer.
+
+Connect a USB microphone and select it as the default audio input. **Left Alt + D** starts recording; press it again to transcribe and type into the focused text field. The physical keyboard guide includes this shortcut. Speech recognition runs locally. Check `voxtype status`, `voxtype info devices`, and `journalctl --user -u voxtype` for diagnostics. A speaker-output monitor is not a microphone.
+
 ## Accent editor
 
 | Key | Action |

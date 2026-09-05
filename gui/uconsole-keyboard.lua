@@ -39,6 +39,9 @@ replace("MOD3 + DOWN", "uConsole: Speaker + D-pad Down, volume down", "omarchy-a
 replace("ALT + SPACE", "uConsole: menu (left Alt)", "omarchy-menu toggle")
 replace("ALT + T", "uConsole: Activity / btop", "uconsole-activity")
 o.window("org.uconsole.activity", { fullscreen = true })
+if o.cmd_present("voxtype") then
+  replace("ALT + D", "uConsole: toggle dictation", "voxtype record toggle")
+end
 replace("ALT + RETURN", "uConsole: terminal (left Alt)", { omarchy = "terminal" })
 replace("ALT + B", "uConsole: browser (left Alt)", { omarchy = "browser" })
 replace("ALT + E", "uConsole: files (left Alt)", { omarchy = "nautilus" })
