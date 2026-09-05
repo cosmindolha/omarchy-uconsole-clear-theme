@@ -27,6 +27,7 @@ For the **base yellow theme alone**, use Omarchy's Install → Style → Theme w
 
 - **Either Alt + Space:** Omarchy menu. Style → Theme colors opens the editor.
 - **Left Alt + Enter:** terminal. **Left Alt + K:** physical keyboard guide.
+- **Left Alt + T:** Activity / btop, fullscreen at 13 pt with zero terminal padding (98×24 cells on the tested screen). All four panels fit; Q closes it. Normal terminal fonts remain unchanged.
 - **Either Alt + Shift + K:** complete searchable shortcut list.
 - **Left Alt + Tab:** next app. **Right Alt + Tab:** next workspace.
 - **Hold speaker + D-pad Up / Down:** volume changes in 5% steps; holding repeats. **Fn + speaker:** mute.

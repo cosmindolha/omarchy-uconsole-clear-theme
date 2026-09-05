@@ -12,7 +12,7 @@ if [[ ! -f $backup/complete ]]; then
 fi
 install -m644 "$stage/uconsole.xkb" "$stage/uconsole-keyboard.lua" "$HOME/.config/hypr/"
 xkbcli compile-keymap --keymap "$HOME/.config/hypr/uconsole.xkb" --test
-install -m755 "$stage/uconsole-brightness" "$stage/uconsole-keyboard-help" "$HOME/.local/bin/"
+install -m755 "$stage/uconsole-brightness" "$stage/uconsole-keyboard-help" "$stage/uconsole-activity" "$HOME/.local/bin/"
 sudo install -m644 "$stage/90-uconsole-backlight.rules" /etc/udev/rules.d/
 sudo udevadm control --reload-rules
 sudo udevadm trigger --subsystem-match=backlight --action=add

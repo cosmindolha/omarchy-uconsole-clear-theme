@@ -1,0 +1,3 @@
+#!/bin/bash
+# Use the full handheld display while using a dedicated 13 pt font to fit btop's minimum 24 rows.
+exec /usr/share/omarchy/bin/omarchy-launch-or-focus 'org.uconsole.activity' 'foot --fullscreen --app-id=org.uconsole.activity --override=pad=0x0 --override="font=JetBrainsMono Nerd Font:size=13" -e btop'
