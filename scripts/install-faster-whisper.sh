@@ -23,7 +23,7 @@ from pathlib import Path
 from huggingface_hub import snapshot_download
 snapshot_download('Systran/faster-whisper-base',revision='ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66',local_dir=Path.home()/'.local/share/uconsole/faster-whisper-base',allow_patterns=['model.bin','config.json','tokenizer.json','vocabulary.*'])
 PY
-install -m644 "$source_dir/dictation-server.py" "$source_dir/dictation.html" "$source_dir/theme-editor.py" "$root/"
+install -m644 "$source_dir/dictation-server.py" "$source_dir/dictation_models.py" "$source_dir/dictation.html" "$source_dir/theme-editor.py" "$root/"
 install -m755 "$source_dir/uconsole-dictation-settings" "$HOME/.local/bin/"
 install -m644 "$source_dir/uconsole-dictation.service" "$HOME/.config/systemd/user/"
 [[ -e "$HOME/.config/uconsole/dictation.json" ]] || echo '{"language":"en"}' > "$HOME/.config/uconsole/dictation.json"
@@ -46,6 +46,15 @@ backup="$HOME/.config/voxtype/config.toml.before-faster-whisper"
 voxtype config set whisper.mode remote
 voxtype config set whisper.remote_endpoint http://127.0.0.1:8769
 voxtype config set whisper.remote_model base
+python3 - <<'PYTIMEOUT'
+from pathlib import Path
+import re
+p=Path.home()/'.config/voxtype/config.toml'
+s=p.read_text()
+s=re.sub(r'^remote_timeout_secs\s*=.*\n', '', s, flags=re.M)
+s=s.replace('[whisper]', '[whisper]\nremote_timeout_secs = 600')
+p.write_text(s)
+PYTIMEOUT
 # The backend uses dictation.json as the language authority, not this cached field.
 voxtype config set whisper.language en
 voxtype config set whisper.translate false

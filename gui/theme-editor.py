@@ -10,6 +10,8 @@ import shutil
 import subprocess
 import threading
 import tomllib
+import urllib.request
+import urllib.error
 from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parent
@@ -114,24 +116,21 @@ def preview(colors,shell,accent):
     run(['omarchy-shell','shell','applyTheme',base64.b64encode(colors.encode()).decode(),base64.b64encode(shell.encode()).decode()])
     run(['hyprctl','-i','0','eval','hl.config({ general = { col = { active_border = "rgb('+accent[1:]+')" } } })'])
 
-def dictation_state():
-    config = json.loads((HOME/'.config/uconsole/dictation.json').read_text())
-    if config.get('language') not in ('en', 'ro'):
-        raise ValueError('Invalid dictation language')
-    return {'language': config['language']}
+def dictation_request(data=None):
+    headers = {}
+    if data is not None:
+        headers = {'Content-Type': 'application/json', 'X-Uconsole-Settings':
+            (HOME/'.config/uconsole/dictation-settings.token').read_text().strip()}
+    request = urllib.request.Request('http://127.0.0.1:8769/' + ('settings' if data is not None else 'health'),
+        data=json.dumps(data).encode() if data is not None else None, headers=headers)
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as error:
+        raise ValueError(json.loads(error.read()).get('detail', 'Settings request failed')) from error
 
-def set_dictation_language(language):
-    if language not in ('en', 'ro'):
-        raise ValueError('Choose English or Romanian')
-    if run(['voxtype', 'status']) != 'idle':
-        raise ValueError('Finish dictation, then change language')
-    path = HOME/'.config/uconsole/dictation.json'
-    data = json.loads(path.read_text())
-    data['language'] = language
-    temporary = path.with_suffix('.json.new')
-    temporary.write_text(json.dumps(data)+'\n')
-    temporary.replace(path)
-    return dictation_state()
+def dictation_state():
+    return dictation_request()
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,format,*args):pass
@@ -161,7 +160,7 @@ class Handler(BaseHTTPRequestHandler):
             if not 0<length<=2048:raise ValueError('Invalid request size')
             data=json.loads(self.rfile.read(length))
             if self.path=='/api/dictation':
-                with LOCK:return self.respond(200,set_dictation_language(data.get('language')))
+                return self.respond(200,dictation_request(data))
             client=str(data.get('client',''))[:80];seq=int(data.get('seq',0))
             with LOCK:
                 if seq<=SEQUENCES.get(client,-1):return self.respond(200,{'stale':True})
