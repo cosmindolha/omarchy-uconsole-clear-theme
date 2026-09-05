@@ -21,6 +21,7 @@ sample_rate = 16000
 max_duration_secs = 60
 pause_media = true
 [whisper]
+context_window_optimization = true
 model = "base"
 language = "auto"
 threads = 4

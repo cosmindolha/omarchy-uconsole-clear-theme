@@ -49,6 +49,12 @@ Run `./scripts/install-voxtype.sh` as the desktop user to install the checksum-v
 
 Connect a USB microphone and select it as the default audio input. **Hold gamepad A** while speaking, then release it to transcribe and type into the focused text field. **Left Alt + D** remains a toggle alternative. The gamepad listener requires `python-evdev` and read access to the onboard gamepad (the tested user belongs to `input`). It recognizes the stock 20230713 firmware button code 289, independent of the ordinary typing A key, and reconnects after USB reattachment. The physical keyboard guide includes this shortcut. Speech recognition runs locally. Check `voxtype status`, `voxtype info devices`, and `journalctl --user -u voxtype` for diagnostics. A speaker-output monitor is not a microphone.
 
+### Dictation latency on CM5
+
+The installer enables `whisper.context_window_optimization = true` for new configurations, keeping the multilingual base model. On the tested CM5, the same three-second English WAV took 12.71 seconds with stock settings and 7.76 seconds with short-clip optimization and automatic language detection. Fixing the language to English reduced that test to 1.53 seconds. These are processing times after release, not recording durations; other speech and languages can differ. The 11-second sample improved from 13.09 to 9.32 seconds with automatic detection retained.
+
+Existing users can add `context_window_optimization = true` under `[whisper]` in `~/.config/voxtype/config.toml`, then restart `voxtype.service` while idle. For one-language dictation, `voxtype config set whisper.language en` (or `ro`) avoids auto-detection; `auto` restores language detection. Restart the service after changing language. Do not fix English if you also expect Romanian dictation. Upstream warns reduced context can cause repetitions with some models, especially large/turbo; these timings and spot checks use base only.
+
 ## Accent editor
 
 | Key | Action |
