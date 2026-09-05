@@ -35,7 +35,7 @@ For the **base yellow theme alone**, use Omarchy's Install → Style → Theme w
 - **Fn + comma / period:** one actual backlight level down/up. **Fn + Space:** keyboard lighting.
 - **Either Alt + L:** manual lock. Automatic locking is delayed to one hour; display blanking follows the lock.
 
-Right Alt becomes Super on the onboard keyboard. The speaker key becomes a held modifier on its separate consumer-control interface. The other keyboards retain their mappings. Left Alt alternatives can override an application's own Alt shortcuts. Game-button behavior is retained; with optional Voxtype installed, gamepad A also controls dictation.
+Right Alt becomes Super on the onboard keyboard. The speaker key becomes a held modifier on its separate consumer-control interface. The other keyboards retain their mappings. Left Alt alternatives can override an application's own Alt shortcuts. The optional gamepad service maps A to dictation, B to the voice launcher, and X to a normal window close. These global actions also apply while games are focused; stop `uconsole-dictation-button.service` when you want ordinary gamepad use.
 
 The consumer-control device uses `resolve_binds_by_sym = true` so Hyprland matches its remapped modifier symbol. Without this, the original volume-down keycode can still trigger the stock repeating binding when the speaker key is held alone. See [Hyprland's symbol matching documentation](https://wiki.hypr.land/configuring/core/binds/keyboard-layouts/).
 
@@ -60,6 +60,18 @@ After installing Voxtype, run `./scripts/install-faster-whisper.sh`. This instal
 Measured on the CM5: a three-second English clip took 1.95 seconds, and the 11-second sample took 2.50 seconds in faster-whisper (2.75 seconds through Voxtype's local HTTP adapter), versus 12.71/13.09 seconds with the original whisper.cpp/automatic-language setup. These are sample timings, not a general accuracy or latency guarantee. The same multilingual base model is used; greedy decoding favors dictation latency.
 
 Diagnostics: `systemctl --user status uconsole-dictation voxtype`, `curl http://127.0.0.1:8769/health`. Replay a WAV without typing using `~/.local/share/uconsole/faster-whisper-venv/bin/python ~/.local/share/uconsole/dictation-server.py --file sample.wav --language ro`. Service logs record language, duration and timing without logging the transcript. The existing Voxtype daemon may separately log transcription text.
+
+### Voice app launcher and gamepad shortcuts
+
+The faster-whisper installer also adds a compact Spotlight-style voice launcher. **Hold gamepad B**, say an app name, then release. The screen shows the decoded words; a clear installed-app match opens automatically after a short visible pause. Ambiguous matches stay in a keyboard-navigable list. Type to search or correct the words, Up/Down selects a result, Enter launches it, and Esc cancels. **Gamepad X** closes the focused window once per physical press, like Alt+Q; holding it does not close successive windows. **Gamepad A** remains separate dictation into the focused app.
+
+The launcher uses the model and English/Romanian language selected in Dictation settings. It records at most 30 seconds, cleans up its temporary audio, and launches only visible installed desktop entries through GIO. It never executes a spoken shell command. Exact names and a few English/Romanian aliases (terminal, browser, files, btop, keybindings) provide matching without FunctionGemma or fine-tuning. A btop result uses the fitted uConsole Activity launcher. Dependencies: `alsa-utils`, `python-gobject`, and `python-evdev`.
+
+![Voice launcher](screenshots/voice-launcher.png)
+
+Button mapping follows the [official ClockworkPi firmware](https://github.com/clockworkpi/uConsole/blob/master/Code/uconsole_keyboard/keymaps.ino#L371): X is joystick button 1, A button 2, B button 3, Y button 4. On the tested stock 20230713 firmware these are Linux event codes 288/289/290/291, verified with physical presses. Keyboard-mode DIP-switch settings or replacement firmware can change this mapping. The regular typing A/B/X keys are untouched.
+
+Validation includes a real B event capture/release, a spoken "Open terminal" WAV through decoding/matching/GIO launch, type-to-search on the actual display, and an X press/hold that closed only the disposable test window. Unit tests cover English/Romanian aliases, ambiguous names, unknown commands, and missing apps.
 
 ### Original whisper.cpp latency on CM5
 

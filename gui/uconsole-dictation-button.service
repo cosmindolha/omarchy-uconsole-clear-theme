@@ -1,5 +1,5 @@
 [Unit]
-Description=uConsole gamepad A push-to-talk for Voxtype
+Description=uConsole gamepad dictation, voice launcher and window close
 PartOf=graphical-session.target
 After=voxtype.service
 Wants=voxtype.service

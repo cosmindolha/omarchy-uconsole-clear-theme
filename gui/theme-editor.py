@@ -116,12 +116,12 @@ def preview(colors,shell,accent):
     run(['omarchy-shell','shell','applyTheme',base64.b64encode(colors.encode()).decode(),base64.b64encode(shell.encode()).decode()])
     run(['hyprctl','-i','0','eval','hl.config({ general = { col = { active_border = "rgb('+accent[1:]+')" } } })'])
 
-def dictation_request(data=None):
+def dictation_request(data=None, launcher=False):
     headers = {}
     if data is not None:
         headers = {'Content-Type': 'application/json', 'X-Uconsole-Settings':
             (HOME/'.config/uconsole/dictation-settings.token').read_text().strip()}
-    request = urllib.request.Request('http://127.0.0.1:8769/' + ('settings' if data is not None else 'health'),
+    request = urllib.request.Request('http://127.0.0.1:8769/' + (('launcher' if data is not None else 'launcher?visible=true') if launcher else ('settings' if data is not None else 'health')),
         data=json.dumps(data).encode() if data is not None else None, headers=headers)
     try:
         with urllib.request.urlopen(request, timeout=5) as response:
@@ -145,9 +145,10 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path=self.path.split('?')[0]
         try:
+            if path=='/api/launcher':return self.respond(200,dictation_request(launcher=True))
             if path=='/api/dictation':return self.respond(200,dictation_state())
             if path=='/api/state':return self.respond(200,state())
-            files={'/':'theme-editor.html','/keys':'keyboard.html','/dictation':'dictation.html'}
+            files={'/':'theme-editor.html','/keys':'keyboard.html','/dictation':'dictation.html','/launcher':'launcher.html'}
             if path in files:return self.respond(200,(ROOT/files[path]).read_bytes(),'text/html; charset=utf-8')
             self.respond(404,{'error':'Not found'})
         except Exception as e:self.respond(500,{'error':str(e)})
@@ -159,6 +160,8 @@ class Handler(BaseHTTPRequestHandler):
             length=int(self.headers.get('Content-Length','0'))
             if not 0<length<=2048:raise ValueError('Invalid request size')
             data=json.loads(self.rfile.read(length))
+            if self.path=='/api/launcher':
+                return self.respond(200,dictation_request(data,launcher=True))
             if self.path=='/api/dictation':
                 return self.respond(200,dictation_request(data))
             client=str(data.get('client',''))[:80];seq=int(data.get('seq',0))

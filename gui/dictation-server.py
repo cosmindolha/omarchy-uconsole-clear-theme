@@ -12,6 +12,7 @@ import subprocess
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 import uvicorn
 from dictation_models import Engine
+from voice_launcher import VoiceLauncher
 
 ROOT = Path.home()/'.local/share/uconsole'
 SETTINGS = Path.home()/'.config/uconsole/dictation.json'
@@ -20,6 +21,7 @@ logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger('uconsole-dictation')
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 engine = None
+launcher = None
 
 
 @app.get('/health')
@@ -27,11 +29,34 @@ def health():
     return engine.state()
 
 
+@app.get('/launcher')
+def launcher_state(visible: bool = False):
+    return launcher.snapshot(visible)
+
+
+@app.post('/launcher')
+def launcher_action(data: dict, x_uconsole_settings: str = Header(default='')):
+    if not hmac.compare_digest(x_uconsole_settings, TOKEN.read_text().strip()):
+        raise HTTPException(403, 'Local launcher only')
+    try:
+        action = data.get('action')
+        if action == 'start': return launcher.start()
+        if action == 'stop': return launcher.stop()
+        if action == 'cancel': return launcher.cancel()
+        if action == 'search': return launcher.search(data.get('text'))
+        if action == 'launch': return launcher.launch(data.get('id'))
+        raise ValueError('Unknown launcher action')
+    except (ValueError, subprocess.SubprocessError) as error:
+        raise HTTPException(400, str(error))
+
+
 @app.post('/settings')
 def settings(data: dict, x_uconsole_settings: str = Header(default='')):
     if not hmac.compare_digest(x_uconsole_settings, TOKEN.read_text().strip()):
         raise HTTPException(403, 'Local settings only')
     try:
+        if launcher.snapshot()['phase'] in ('recording', 'transcribing'):
+            raise ValueError('Finish voice launch before changing settings')
         status = subprocess.run(['voxtype', 'status'], capture_output=True, text=True, timeout=5)
         if status.returncode or status.stdout.strip() != 'idle':
             raise ValueError('Finish dictation, then change settings')
@@ -70,6 +95,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     engine = Engine(ROOT, SETTINGS)
     engine.start()
+    launcher = VoiceLauncher(engine, ROOT)
     if args.file:
         print(json.dumps(engine.transcribe(args.file, args.language), ensure_ascii=False))
     else:

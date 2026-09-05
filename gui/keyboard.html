@@ -58,6 +58,7 @@ for(const k of keys){if(k.y>=99){k.y=120+Math.round((k.y-99)/42)*65;k.h=57;}}
 const actions=[
  {id:'menu',name:'Omarchy menu',group:'Daily',combo:'Right Alt + Space',keys:['alt-r','space'],note:'Open the main menu. Type to find an action, then press Enter.'},
  {id:'terminal',name:'Terminal',group:'Daily',combo:'Right Alt + Enter',keys:['alt-r','enter'],note:'Open a terminal at the comfortable 15 pt text size.'},
+ {id:'voice-launcher',name:'Voice app launcher',group:'Daily',combo:'Hold gamepad B',keys:['game-b'],note:'With the faster-whisper toolkit, hold B to speak an app name; release to decode. Clear matches launch automatically; choose uncertain matches on screen. No app control or shell commands.'},
  {id:'dictation',name:'Voice dictation / Voxtype',group:'Daily',combo:'Hold gamepad A',keys:['game-a'],note:'Hold gamepad A while speaking. Release to transcribe into the focused text field. Requires Voxtype and a microphone. Menu → Setup → Dictation selects English or Romanian when faster-whisper is installed. Left Alt + D also toggles recording.'},
  {id:'activity',name:'Activity / btop',group:'Daily',combo:'Left Alt + T',keys:['alt-l','t'],note:'Open btop fullscreen with dedicated 13 pt text so all panels fit. Monitor CPU, memory, disks, network and processes. Press Q to close.'},
  {id:'browser',name:'Browser',group:'Daily',combo:'Right Alt + B',keys:['alt-r','b'],note:'Open your browser. Apps get a full-width column on this screen.'},
@@ -74,7 +75,7 @@ const actions=[
  {id:'next-workspace',name:'Next workspace',group:'Windows',combo:'Right Alt + Tab',keys:['alt-r','tab'],note:'Cycle through workspaces. Add Shift to go backwards.'},
  {id:'move-workspace',name:'Move app to workspace',group:'Windows',combo:'Right Alt + Shift + 1 … 5',keys:['alt-r','shift-l','1'],note:'Move the current app to the selected workspace. Shown: workspace 1.'},
  {id:'fullscreen',name:'Fullscreen',group:'Windows',combo:'Right Alt + F',keys:['alt-r','f'],note:'Use every pixel for the current app. Press again to restore the top bar.'},
- {id:'close',name:'Close current app',group:'Windows',combo:'Right Alt + Q',keys:['alt-r','q'],note:'Close the focused window. Save your work first.'},
+ {id:'close',name:'Close current app',group:'Windows',combo:'Gamepad X',keys:['game-x'],note:'Close the focused window once per press. Right Alt + Q and Left Alt + Q also work; the app may prompt to save.'},
  {id:'layout',name:'Change window layout',group:'Windows',combo:'Right Alt + Shift + L',keys:['alt-r','shift-l','l'],note:'Switch between the available window layouts. Full-width scrolling is the default.'},
  {id:'lock',name:'Lock screen',group:'Hardware',combo:'Right Alt + L',keys:['alt-r','l'],note:'Lock the desktop. Use your usual password to unlock.'},
  {id:'system',name:'Power / system menu',group:'Hardware',combo:'Right Alt + Esc',keys:['alt-r','escape'],note:'Open system actions such as lock, restart and shutdown.'},

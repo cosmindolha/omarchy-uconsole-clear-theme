@@ -1,10 +1,13 @@
 #!/usr/bin/python3
-"""Use the onboard gamepad A button for Voxtype push-to-talk."""
+"""Onboard gamepad: A dictation, B voice launcher, X close window."""
 import logging
 import select
 import signal
 import subprocess
 import time
+import json
+from pathlib import Path
+import urllib.request
 
 import evdev
 
@@ -12,6 +15,8 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 DEVICE_NAME = "ClockworkPI uConsole"
 # Verified on stock 20230713 firmware: physical gamepad A, not keyboard KEY_A.
 BUTTON = evdev.ecodes.BTN_THUMB
+LAUNCH_BUTTON = evdev.ecodes.BTN_THUMB2  # B = firmware joystick button 3
+CLOSE_BUTTON = evdev.ecodes.BTN_JOYSTICK  # X = firmware joystick button 1
 running = True
 
 
@@ -22,6 +27,29 @@ def command(action):
     return result.returncode == 0
 
 
+def launcher_action(action=None):
+    url = 'http://127.0.0.1:8769/launcher'
+    if action is None:
+        request = urllib.request.Request(url)
+    else:
+        token = (Path.home()/'.config/uconsole/dictation-settings.token').read_text().strip()
+        request = urllib.request.Request(url, data=json.dumps({'action':action}).encode(),
+            headers={'Content-Type':'application/json','X-Uconsole-Settings':token})
+    with urllib.request.urlopen(request, timeout=8) as response:
+        return json.load(response)
+
+
+def close_window():
+    window = json.loads(subprocess.check_output(['hyprctl','-i','0','activewindow','-j'], text=True))
+    address = window.get('address')
+    if not address: return
+    if window.get('class') == 'chrome-127.0.0.1__launcher-Default':
+        launcher_action('cancel')
+    subprocess.run(['hyprctl','-i','0','dispatch',
+        'hl.dsp.window.close({ window = "address:' + address + '" })'], check=True, capture_output=True, timeout=5)
+    logging.info('Gamepad X: closed focused window')
+
+
 def stop_service(*_):
     global running
     running = False
@@ -30,16 +58,36 @@ def stop_service(*_):
 def listen(device):
     held = False
     recording = False
-    logging.info("Listening for gamepad A on %s", device.path)
+    launch_held = False
+    close_held = False
+    logging.info("Listening for gamepad A/B/X on %s", device.path)
     try:
         while running:
             if not select.select([device], [], [], 0.25)[0]:
                 continue
             for event in device.read():
-                if event.type != evdev.ecodes.EV_KEY or event.code != BUTTON:
+                if event.type != evdev.ecodes.EV_KEY:
                     continue
+                if event.code == CLOSE_BUTTON:
+                    if event.value == 1 and not close_held:
+                        close_held = True
+                        close_window()
+                    elif event.value == 0: close_held = False
+                    continue
+                if event.code == LAUNCH_BUTTON:
+                    if event.value == 1 and not launch_held and not held:
+                        launcher_action('start'); launch_held = True
+                        logging.info('Gamepad B pressed: voice launcher recording')
+                    elif event.value == 0 and launch_held:
+                        launcher_action('stop'); launch_held = False
+                        logging.info('Gamepad B released: decode and match app')
+                    continue
+                if event.code != BUTTON: continue
                 if event.value == 1 and not held:
                     held = True
+                    try:
+                        if launcher_action().get('phase') in ('recording','transcribing','opening'): continue
+                    except (OSError,ValueError): pass  # Dictation also works without the optional launcher.
                     status = subprocess.run(["voxtype", "status"], capture_output=True, text=True, timeout=5)
                     if status.returncode == 0 and status.stdout.strip() == "idle":
                         recording = command("start")
@@ -55,6 +103,8 @@ def listen(device):
         # Never leave an owned recording running after USB disconnect/service stop.
         if recording:
             command("cancel")
+        if launch_held:
+            launcher_action("cancel")
         device.close()
 
 
