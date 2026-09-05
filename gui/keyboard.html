@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Keybindings</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;font-size:20px;background:#060709;color:#f8f8f2;--amber:#ffd166;--muted:#c0c8ce;--line:#53616b}
+*{box-sizing:border-box}body{margin:0;height:100vh;display:flex;flex-direction:column;overflow:hidden}button,input{font:inherit}button{cursor:pointer;color:inherit;background:#151a1f;border:1px solid var(--line);border-radius:7px}button:hover{border-color:var(--amber)}:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+header{padding:10px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;flex-shrink:0}h1{font-size:23px;margin:0;white-space:nowrap}header span{color:var(--muted);font-size:18px}header button{margin-left:auto;padding:5px 12px;font-size:18px}
+main{display:grid;grid-template-columns:255px minmax(0,1fr);flex:1;min-height:0}nav{padding:12px 10px;display:flex;flex-direction:column;gap:9px;border-right:1px solid var(--line);min-height:0}input{width:100%;min-width:0;padding:8px 10px;background:#101419;border:1px solid var(--line);color:inherit;border-radius:7px;font-size:20px}#categories{display:flex;flex-wrap:wrap;gap:5px}#categories button{padding:5px 8px;font-size:17px}#categories .chosen{color:#060709;background:var(--amber);border-color:var(--amber)}#commands{overflow-y:auto;overscroll-behavior:contain;flex:1;scrollbar-color:#9daab4 #101419;scrollbar-width:thin}#commands button{display:block;width:100%;border:1px solid transparent;background:transparent;text-align:left;padding:9px 10px;margin:2px 0;font-size:20px;line-height:1.2}#commands button.selected{background:var(--amber);color:#060709;font-weight:650}#commands small{display:block;color:var(--muted);font-size:16px;margin-top:3px}#commands .selected small{color:#25303a}
+article{padding:12px 15px 8px;display:flex;flex-direction:column;min-height:0;min-width:0}h2{font-size:25px;margin:0 0 7px;line-height:1.1}#combination{font-size:22px;font-weight:650;color:var(--amber);min-height:28px}#description{font-size:18px;color:var(--muted);line-height:1.3;margin:6px 0 5px;min-height:45px}#diagram{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}svg{width:100%;height:100%;max-height:330px;overflow:visible}svg .key{cursor:pointer}svg .key rect,svg .key circle{fill:#151a1f;stroke:#65727b;stroke-width:1.3}svg text{fill:#f8f8f2;pointer-events:none;font-size:23px;font-weight:550;text-anchor:middle;dominant-baseline:middle}svg .sub{font-size:14px;fill:#c0c8ce}svg .key.active rect,svg .key.active circle{fill:#ffd166;stroke:#fff;stroke-width:2.4}svg .key.active text{fill:#060709;font-weight:750}svg .key.alternate rect{stroke:#ffd166;stroke-width:2.5;stroke-dasharray:4 3}svg .super rect{stroke:#ffd166;stroke-width:2}svg .key:focus{outline:none}svg .key:focus rect{stroke:#fff;stroke-width:3}#keynote{font-size:17px;color:var(--muted);padding-top:5px;min-height:26px}footer{font-size:17px;padding:7px 16px;border-top:1px solid var(--line);color:var(--muted);flex-shrink:0;display:flex;justify-content:space-between;gap:10px}kbd{font-family:inherit;color:#f8f8f2}#clear{font-size:16px;padding:4px 7px;display:none}
+.compact main{grid-template-columns:210px minmax(0,1fr)}.compact header span{display:none}.compact article{padding:10px}.compact #description{font-size:17px}.compact footer{font-size:15px}.compact svg .sub{font-size:16px}
+.narrow{overflow:auto}.narrow main{display:flex;flex-direction:column;flex:none}.narrow nav{border-right:0;max-height:220px}.narrow #commands{display:flex;gap:5px;overflow-x:auto;min-height:65px}.narrow #commands button{min-width:155px}.narrow #diagram{height:280px;flex:auto}.narrow footer{flex-wrap:wrap}.narrow header{padding:10px}
+/* Handheld view: the command list and the keyboard are the entire interface. */
+header,footer,#categories,#command-title,#description,#keynote{display:none}
+main{grid-template-columns:235px minmax(0,1fr)}nav{padding:10px 8px;gap:8px}#commands small{display:none}#commands button{padding:10px 9px;margin:1px 0}
+article{padding:14px 14px 10px;gap:10px}#combination{font-size:24px;text-align:center;line-height:1.25;min-height:38px;display:flex;align-items:center;justify-content:center}svg{max-height:none}#diagram{align-items:center}#search{font-size:19px;padding:8px}
+svg .key.active rect,svg .key.active circle{fill:var(--amber)}svg .key.alternate rect,svg .super rect{stroke:var(--amber)}
+</style>
+<main>
+ <nav aria-label="Shortcut commands"><span style="font-size:17px;color:#c0c8ce;padding:0 3px">Keybindings</span><input id="search" type="search" aria-label="Find a command" placeholder="Find command…" autocomplete="off"><div id="categories" aria-label="Categories"></div><button id="clear"></button><div id="commands" aria-label="Commands"></div></nav>
+ <article aria-live="polite"><h2 id="command-title"></h2><div id="combination"></div><p id="description"></p><div id="diagram"><svg id="keyboard" viewBox="0 0 840 510" role="group" aria-label="Physical uConsole keyboard"></svg></div><div id="keynote">Amber keys are the ones to press together.</div></article>
+</main>
+<script>
+'use strict';
+// Chromium also inherits the enlarged GTK text scale. Keep this handheld guide
+// at 1.25 physical pixels per design pixel, instead of multiplying both scales.
+function fitHandheld(){
+ const factor=Math.min(1,1.25/(window.devicePixelRatio||1));
+ document.body.style.zoom=String(factor);
+ document.body.style.width=(window.innerWidth/factor)+'px';
+ document.body.style.height=(window.innerHeight/factor)+'px';
+ document.body.classList.toggle('compact',window.innerWidth/factor<760);
+ document.body.classList.toggle('narrow',window.innerWidth/factor<560);
+}
+fitHandheld();window.addEventListener('resize',fitHandheld);
+function refreshAccent(){if(location.port==='8768')fetch('/api/state').then(r=>r.json()).then(d=>{if(/^#[0-9a-f]{6}$/i.test(d.accent))document.documentElement.style.setProperty('--amber',d.accent);}).catch(()=>{});}
+refreshAccent();window.addEventListener('focus',refreshAccent);
+// Coordinates describe the photographed physical keyboard, independent of XKB.
+// All shortcuts reference these stable physical key IDs.
+const keys=[];
+function key(id,label,x,y,w=57,h=35,sub=''){keys.push({id,label,x,y,w,h,sub});}
+function row(ids,labels,y,start=15,step=65){ids.forEach((id,i)=>key(id,labels[i],start+i*step,y));}
+// The upper control cluster, viewed upright above the keyboard.
+key('up','↑',96,1,48,29);key('left','←',45,31,48,29);key('down','↓',96,61,48,29);key('right','→',147,31,48,29);
+key('mouse-l','L',237,6,43,37);key('mouse-r','R',255,50,43,37);key('trackball','●',418,25,49,49);
+key('game-y','Y',594,6,43,37);key('game-x','X',646,6,43,37);key('game-b','B',609,50,43,37);key('game-a','A',661,50,43,37);
+key('escape','Esc',15,99,77);key('select','Select',99,99,89,35,'Print');key('start','Start',195,99,89,35,'Pause');
+key('volume','Vol',376,99);key('bracket-l','[',441,99);key('bracket-r',']',506,99);key('slash','/',571,99);key('minus','−',636,99,57,35,'F11');key('equal','+',701,99,57,35,'F12');key('backslash','\\',766,99);
+row(['grave',...'1234567890'],['~',...'1234567890'],141);key('backspace','⌫',730,141,93,35,'Delete');
+key('tab','Tab',15,183,77,35,'Caps');row([...'qwertyuiop'],[...'QWERTYUIOP'],183,101,65);
+key('quote',"'",15,225);row([...'asdfghjkl'],[...'ASDFGHJKL'],225,80,65);key('semicolon',';',665,225);key('enter','Enter',730,225,93);
+key('shift-l','Shift',15,267,91);row([...'zxcvbnm', 'comma','period'],[...'ZXCVBNM',',','.'],267,115,65);key('shift-r','Shift',704,267,119);
+key('fn-l','Fn',45,309,67,32);key('ctrl-l','Ctrl',122,309,82,32);key('alt-l','Alt',214,309,72,32,'Cmd');key('space','Space',296,309,259,32);key('alt-r','Alt',565,309,72,32,'Super');key('ctrl-r','Ctrl',647,309,82,32);key('fn-r','Fn',739,309,67,32);
+// Square standard keys, retaining the photographed row and column positions.
+for(const k of keys){if(k.y>=99){k.y=120+Math.round((k.y-99)/42)*65;k.h=57;}}
+const actions=[
+ {id:'menu',name:'Omarchy menu',group:'Daily',combo:'Right Alt + Space',keys:['alt-r','space'],note:'Open the main menu. Type to find an action, then press Enter.'},
+ {id:'terminal',name:'Terminal',group:'Daily',combo:'Right Alt + Enter',keys:['alt-r','enter'],note:'Open a terminal at the comfortable 15 pt text size.'},
+ {id:'browser',name:'Browser',group:'Daily',combo:'Right Alt + B',keys:['alt-r','b'],note:'Open your browser. Apps get a full-width column on this screen.'},
+ {id:'files',name:'Files',group:'Daily',combo:'Right Alt + E',keys:['alt-r','e'],note:'Open the file manager.'},
+ {id:'apps',name:'Apps',group:'Daily',combo:'Right Alt + A',keys:['alt-r','a'],note:'Find and open an installed application.'},
+ {id:'help',name:'This keyboard guide',group:'Daily',combo:'Right Alt + K',keys:['alt-r','k'],note:'Return to this diagram. Right Alt + H works too.'},
+ {id:'all-help',name:'Full keybindings list',group:'Daily',combo:'Right Alt + Shift + K',keys:['alt-r','shift-l','k'],note:'Open the searchable Omarchy list, including your custom shortcuts.'},
+ {id:'help-fn',name:'Guide using Fn',group:'Daily',combo:'Fn + Start / Pause',keys:['fn-l','start'],note:'An alternative using the printed Pause function above Start.'},
+ {id:'magnifier',name:'Magnifier',group:'Daily',combo:'Right Alt + Z',keys:['alt-r','z'],note:'Toggle 2× magnification around the pointer. Press again to restore normal view.'},
+ {id:'switch',name:'Next app',group:'Windows',combo:'Left Alt + Tab',keys:['alt-l','tab'],note:'Switch to the next open app. Left Alt stays an ordinary Alt key.'},
+ {id:'focus-left',name:'App to the left',group:'Windows',combo:'Right Alt + ←',keys:['alt-r','left'],note:'Move to the previous full-width app column using the D-pad.'},
+ {id:'focus-right',name:'App to the right',group:'Windows',combo:'Right Alt + →',keys:['alt-r','right'],note:'Move to the next full-width app column using the D-pad.'},
+ {id:'workspace',name:'Workspace 1–5',group:'Windows',combo:'Right Alt + 1 … 5',keys:['alt-r','1'],note:'Shown: workspace 1. Substitute 2, 3, 4, or 5 to match the top bar.'},
+ {id:'next-workspace',name:'Next workspace',group:'Windows',combo:'Right Alt + Tab',keys:['alt-r','tab'],note:'Cycle through workspaces. Add Shift to go backwards.'},
+ {id:'move-workspace',name:'Move app to workspace',group:'Windows',combo:'Right Alt + Shift + 1 … 5',keys:['alt-r','shift-l','1'],note:'Move the current app to the selected workspace. Shown: workspace 1.'},
+ {id:'fullscreen',name:'Fullscreen',group:'Windows',combo:'Right Alt + F',keys:['alt-r','f'],note:'Use every pixel for the current app. Press again to restore the top bar.'},
+ {id:'close',name:'Close current app',group:'Windows',combo:'Right Alt + Q',keys:['alt-r','q'],note:'Close the focused window. Save your work first.'},
+ {id:'layout',name:'Change window layout',group:'Windows',combo:'Right Alt + Shift + L',keys:['alt-r','shift-l','l'],note:'Switch between the available window layouts. Full-width scrolling is the default.'},
+ {id:'lock',name:'Lock screen',group:'Hardware',combo:'Right Alt + L',keys:['alt-r','l'],note:'Lock the desktop. Use your usual password to unlock.'},
+ {id:'system',name:'Power / system menu',group:'Hardware',combo:'Right Alt + Esc',keys:['alt-r','escape'],note:'Open system actions such as lock, restart and shutdown.'},
+ {id:'dim',name:'Screen dimmer',group:'Hardware',combo:'Fn + ,',keys:['fn-l','comma'],note:'Lower the LCD backlight by one hardware level. Stops above completely dark.'},
+ {id:'bright',name:'Screen brighter',group:'Hardware',combo:'Fn + .',keys:['fn-l','period'],note:'Raise the LCD backlight by one hardware level.'},
+ {id:'keyboard-light',name:'Keyboard backlight',group:'Hardware',combo:'Fn + Space',keys:['fn-l','space'],note:'Cycle the keyboard lighting through its hardware brightness settings.'},
+ {id:'volume-down',name:'Volume down',group:'Hardware',combo:'Speaker + D-pad ↓',keys:['volume','down'],note:'Hold the speaker key and press D-pad Down. Changes by 5%; keep holding Down to repeat.'},
+ {id:'volume-up',name:'Volume up',group:'Hardware',combo:'Speaker + D-pad ↑',keys:['volume','up'],note:'Hold the speaker key and press D-pad Up. Changes by 5%; keep holding Up to repeat.'},
+ {id:'mute',name:'Mute / unmute',group:'Hardware',combo:'Fn + speaker key',keys:['fn-l','volume'],note:'Toggle sound using the printed Fn function.'},
+ {id:'screenshot',name:'Screenshot',group:'Daily',combo:'Fn + Select / Print',keys:['fn-l','select'],note:'Open screenshot selection. Use the trackball, or Enter to capture the highlighted window.'},
+ {id:'delete',name:'Delete forward',group:'Typing',combo:'Fn + Backspace',keys:['fn-l','backspace'],note:'Delete after the cursor. Backspace by itself deletes before it.'},
+ {id:'caps',name:'Caps Lock',group:'Typing',combo:'Fn + Tab',keys:['fn-l','tab'],note:'The printed Caps key works as Caps Lock on the onboard keyboard.'},
+ {id:'f1',name:'Function keys F1–F10',group:'Typing',combo:'Fn + 1 … 0',keys:['fn-l','1'],note:'Shown: F1. Use 2–9 for F2–F9, or 0 for F10.'},
+ {id:'f11',name:'Function key F11',group:'Typing',combo:'Fn + −',keys:['fn-l','minus'],note:'Send F11 using the printed function above the minus key.'},
+ {id:'f12',name:'Function key F12',group:'Typing',combo:'Fn + +',keys:['fn-l','equal'],note:'Send F12 using the printed function above the plus/equal key.'},
+ {id:'page-up',name:'Page up',group:'Typing',combo:'Fn + ↑',keys:['fn-l','up'],note:'Scroll a page up. Fn + U is the other printed option.'},
+ {id:'page-down',name:'Page down',group:'Typing',combo:'Fn + ↓',keys:['fn-l','down'],note:'Scroll a page down. Fn + K is the other printed option.'},
+ {id:'home',name:'Home',group:'Typing',combo:'Fn + ←',keys:['fn-l','left'],note:'Move to the start of the line. Fn + H is the other printed option.'},
+ {id:'end',name:'End',group:'Typing',combo:'Fn + →',keys:['fn-l','right'],note:'Move to the end of the line. Fn + J is the other printed option.'},
+ {id:'copy',name:'Copy',group:'Typing',combo:'Ctrl + C',keys:['ctrl-l','c'],note:'Copy in graphical apps. Add Shift for the terminal.'},
+ {id:'paste',name:'Paste',group:'Typing',combo:'Ctrl + V',keys:['ctrl-l','v'],note:'Paste in graphical apps. Add Shift for the terminal.'},
+ {id:'terminal-paste',name:'Paste in terminal',group:'Typing',combo:'Ctrl + Shift + V',keys:['ctrl-l','shift-l','v'],note:'Paste into the terminal without interrupting the running command.'},
+ {id:'legacy-super',name:'Original Cmd / Super',group:'Typing',combo:'Fn + left Alt',keys:['fn-l','alt-l'],note:'The original Cmd function still works. Dedicated right Alt is easier for shortcuts.'},
+ {id:'colors-presets',name:'Colors: presets',group:'Theme colors',combo:'In Theme colors: 1 … 4',keys:['1'],note:'1 Yellow, 2 Green, 3 Blue, 4 White. Preview first, then S to save.'},
+ {id:'colors-pick',name:'Colors: adjust color',group:'Theme colors',combo:'In Theme colors: C, then D-pad',keys:['c'],note:'C focuses the color area. Left/right changes saturation; up/down changes brightness. Shift makes larger steps.'},
+ {id:'colors-hue',name:'Colors: change hue',group:'Theme colors',combo:'In Theme colors: H, then ← →',keys:['h'],note:'H focuses hue. Use the D-pad to change it; Shift makes larger steps.'},
+ {id:'colors-hex',name:'Colors: hex value',group:'Theme colors',combo:'In Theme colors: X',keys:['x'],note:'Select the hex field, type your color, then Enter to preview it.'},
+ {id:'colors-save',name:'Colors: save',group:'Theme colors',combo:'In Theme colors: Ctrl + S',keys:['ctrl-l','s'],note:'Save the accent and update its theme-menu preview. S also saves outside the hex field.'},
+ {id:'colors-revert',name:'Colors: revert',group:'Theme colors',combo:'In Theme colors: Esc',keys:['escape'],note:'Restore your last saved accent. R also restores it outside the hex field.'}
+];
+const keyIndex=new Map(keys.map(k=>[k.id,k]));
+// Prefer the modifier opposite the action key. The other side is an alternative.
+for(const a of actions){
+ const target=a.keys.filter(id=>!['alt-r','alt-l','ctrl-l','ctrl-r','shift-l','shift-r','fn-l','fn-r'].includes(id)).map(id=>keyIndex.get(id)).at(-1);
+ if(!target)continue;
+ if(a.keys.includes('alt-r')&&a.id!=='next-workspace'){
+  const side=target.x>400?'alt-l':'alt-r';a.keys=a.keys.map(id=>id==='alt-r'?side:id);a.combo=a.combo.replace('Right Alt',side==='alt-l'?'Left Alt':'Right Alt');a.altAlternative=side==='alt-l'?'alt-r':'alt-l';
+ }
+ if(a.keys.includes('ctrl-l')){const side=target.x>400?'ctrl-l':'ctrl-r';a.keys=a.keys.map(id=>id==='ctrl-l'?side:id);}
+ if(a.keys.includes('shift-l')){const side=target.x>400?'shift-l':'shift-r';a.keys=a.keys.map(id=>id==='shift-l'?side:id);}
+}
+for(const a of actions)for(const id of a.keys)if(!keyIndex.has(id))throw Error('Unknown physical key: '+id);
+const svg=document.querySelector('#keyboard'), NS='http://www.w3.org/2000/svg';
+function svgEl(tag,attributes){const el=document.createElementNS(NS,tag);Object.entries(attributes).forEach(([k,v])=>el.setAttribute(k,v));return el;}
+for(const k of keys){
+ const g=svgEl('g',{'class':'key'+(k.id==='alt-r'?' super':''),'data-key':k.id,tabindex:'0',role:'button','aria-label':k.id==='alt-r'?'Right Alt, dedicated Super key':k.label+' key'});
+ const rect=svgEl('rect',{x:k.x,y:k.y,width:k.w,height:k.h,rx:6});g.append(rect);
+ const label=svgEl('text',{x:k.x+k.w/2,y:k.y+k.h*(k.sub?0.72:0.5)});if(k.sub)label.style.fontSize='20px';label.textContent=k.label;g.append(label);
+ if(k.sub){const sub=svgEl('text',{x:k.x+k.w/2,y:k.y+(k.h>40?13:7),'class':'sub'});sub.style.fontSize='12px';sub.textContent=k.sub;g.append(sub);}
+ g.addEventListener('click',()=>filterKey(k.id));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();filterKey(k.id);}});svg.append(g);
+}
+let selected='menu',category='All',keyFilter='',visibleActions=[];
+const list=document.querySelector('#commands'),search=document.querySelector('#search'),clear=document.querySelector('#clear');
+for(const name of ['All','Daily','Windows','Hardware','Typing']){const b=document.createElement('button');b.textContent=name;b.dataset.category=name;b.onclick=()=>{category=name;keyFilter='';renderList();};document.querySelector('#categories').append(b);}
+function choose(id){
+ selected=id;const a=actions.find(a=>a.id===id);document.querySelector('#command-title').textContent=a.name;document.querySelector('#combination').textContent=a.combo;document.querySelector('#description').textContent=a.note;
+ svg.querySelectorAll('.key').forEach(g=>{const on=a.keys.includes(g.dataset.key);g.classList.toggle('active',on);g.classList.toggle('alternate',(a.keys.includes('fn-l')&&g.dataset.key==='fn-r')||g.dataset.key===a.altAlternative);g.setAttribute('aria-pressed',String(on));});
+ list.querySelectorAll('button').forEach(b=>{b.classList.toggle('selected',b.dataset.action===id);b.setAttribute('aria-current',String(b.dataset.action===id));});
+ document.querySelector('#keynote').textContent=a.keys.includes('fn-l')?'Hold either Fn key, then the other highlighted key.':'Amber keys are the ones to press together.';
+}
+function renderList(){
+ const q=search.value.toLowerCase().trim();visibleActions=actions.filter(a=>(category==='All'||a.group===category)&&(!keyFilter||a.keys.includes(keyFilter)||a.altAlternative===keyFilter||(['ctrl-l','ctrl-r'].includes(keyFilter)&&a.keys.some(k=>k.startsWith('ctrl-')))||(['shift-l','shift-r'].includes(keyFilter)&&a.keys.some(k=>k.startsWith('shift-'))))&&(`${a.name} ${a.combo} ${a.note}`).toLowerCase().includes(q));
+ list.replaceChildren();
+ for(const a of visibleActions){const b=document.createElement('button');b.dataset.action=a.id;b.textContent=a.name;const small=document.createElement('small');small.textContent=a.combo;b.append(small);b.onclick=()=>choose(a.id);list.append(b);}
+ if(!visibleActions.length){const p=document.createElement('p');p.textContent='No shortcuts match. Try another key or command.';p.style.padding='0 10px';list.append(p);}
+ document.querySelectorAll('[data-category]').forEach(b=>{b.classList.toggle('chosen',b.dataset.category===category);b.setAttribute('aria-pressed',String(b.dataset.category===category));});
+ clear.style.display=keyFilter?'block':'none';clear.textContent=keyFilter?'Clear key filter ×':'';
+ if(visibleActions.length)choose(visibleActions.some(a=>a.id===selected)?selected:visibleActions[0].id);
+}
+function filterKey(id){keyFilter=id==='fn-r'?'fn-l':id;category='All';search.value='';renderList();if(!visibleActions.length){document.querySelector('#keynote').textContent=id.startsWith('game-')?'Game buttons retain the stock firmware mode; they can also send ordinary letters.':'No listed shortcuts use this key.';}}
+function reset(){category='All';keyFilter='';search.value='';renderList();}clear.onclick=()=>{keyFilter='';renderList();};search.oninput=renderList;
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.target.closest('svg'))return;if(['ArrowDown','ArrowUp'].includes(e.key)&&visibleActions.length){e.preventDefault();const n=visibleActions.findIndex(a=>a.id===selected);choose(visibleActions[(n+(e.key==='ArrowDown'?1:-1)+visibleActions.length)%visibleActions.length].id);list.querySelector('.selected')?.scrollIntoView({block:'nearest'});}if(e.key==='Escape')reset();});
+renderList();
+// Expose the same physical mapping for focused validation and future additions.
+window.uconsoleGuide={keys,actions,keyIndex,choose,filterKey};
+</script>
+</html>

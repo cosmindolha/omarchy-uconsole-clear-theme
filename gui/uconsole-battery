@@ -1,0 +1,27 @@
+#!/usr/bin/python3
+"""Read measured battery data without treating an uncalibrated gauge as full."""
+import json
+from pathlib import Path
+
+battery = Path('/sys/class/power_supply/axp20x-battery')
+def read(name):
+    return (battery/name).read_text().strip()
+
+try:
+    voltage = int(read('voltage_now')) / 1_000_000
+    current = int(read('current_now')) / 1_000_000
+    percent = int(read('capacity'))
+    status = read('status')
+    warning = Path.home()/'.local/state/uconsole/battery-gauge-unreliable'
+    if status == 'Discharging' and percent >= 98 and voltage < 3.95:
+        warning.parent.mkdir(parents=True, exist_ok=True)
+        warning.write_text('Gauge reported full while discharging below 3.95 V. Recalibrate before trusting percentage.\n')
+    data = dict(voltage=voltage, current=current, power=abs(voltage*current),
+                percent=percent, status=status, suspect=warning.exists(),
+                design_mah=int(read('charge_full_design'))/1000,
+                text=f'Bat {voltage:.2f}V')
+    data['tooltip'] = f'{status} · {voltage:.2f} V · {abs(current):.2f} A · {data["power"]:.1f} W'
+    data['tooltip'] += f'\nGauge: {percent}%' + (' — needs calibration' if data['suspect'] else ' — estimate')
+    print(json.dumps(data))
+except (OSError,ValueError) as error:
+    print(json.dumps({'text':'Bat ?', 'error':str(error),'tooltip':'Battery reading unavailable'}))

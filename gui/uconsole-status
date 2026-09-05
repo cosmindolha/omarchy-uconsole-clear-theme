@@ -1,0 +1,16 @@
+#!/usr/bin/python3
+import json, subprocess, sys
+from pathlib import Path
+kind=sys.argv[1]
+if kind=='network':
+ state=subprocess.check_output(['nmcli','-g','GENERAL.STATE','device','show','wlan0'],text=True).strip()
+ connected=state.startswith('100')
+ print(json.dumps({'text':'Wi-Fi' if connected else 'Offline','tooltip':'Wi-Fi settings — '+state}))
+elif kind=='audio':
+ value=subprocess.check_output(['wpctl','get-volume','@DEFAULT_AUDIO_SINK@'],text=True).strip()
+ volume=round(float(value.split()[1])*100)
+ print(json.dumps({'text':'Muted' if 'MUTED' in value else f'Vol {volume}%','tooltip':'Speaker volume and audio settings'}))
+elif kind=='battery':
+ print(subprocess.check_output([str(Path.home()/'.local/bin/uconsole-battery')],text=True).strip())
+else:
+ raise SystemExit('Unknown status item: '+kind)

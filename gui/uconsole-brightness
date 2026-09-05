@@ -1,0 +1,20 @@
+#!/usr/bin/python3
+"""The uConsole backlight has just 10 levels, so percentage steps can stall."""
+import fcntl
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+level = sys.argv[1] if len(sys.argv) == 2 else ""
+if level not in ("up", "down"):
+    raise SystemExit("Usage: uconsole-brightness up|down")
+device = Path("/sys/class/backlight/backlight@0")
+with open(Path(os.environ.get("XDG_RUNTIME_DIR", "/run/user/1000")) / "uconsole-brightness.lock", "w") as lock:
+    fcntl.flock(lock, fcntl.LOCK_EX)
+    current = int((device / "brightness").read_text())
+    maximum = int((device / "max_brightness").read_text())
+    target = max(1, min(maximum, current + (1 if level == "up" else -1)))
+    subprocess.run(["brightnessctl", "-d", device.name, "set", str(target)], check=True, stdout=subprocess.DEVNULL)
+    actual = int((device / "brightness").read_text())
+subprocess.run(["omarchy-osd", "-i", "brightness", "-p", str(round(actual / maximum * 100))], check=False)

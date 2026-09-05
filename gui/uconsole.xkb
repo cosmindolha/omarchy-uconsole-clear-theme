@@ -1,0 +1,16 @@
+xkb_keymap {
+  xkb_keycodes { include "evdev+aliases(qwerty)" };
+  xkb_types { include "complete" };
+  xkb_compat { include "complete" };
+  xkb_symbols {
+    include "pc+us+inet(evdev)+shift(both_capslock_cancel)"
+    // Right Alt is dedicated Super. Keep left Alt and the firmware's Fn+Alt Cmd.
+    replace key <RALT> { type[Group1] = "ONE_LEVEL", [ Super_R ] };
+    modifier_map None { <RALT> };
+    modifier_map Mod4 { <RALT>, <LWIN>, <RWIN> };
+    // The physical speaker key becomes a held modifier for the D-pad.
+    replace key <VOL-> { type[Group1] = "ONE_LEVEL", [ Hyper_L ] };
+    modifier_map None { <VOL-> };
+    modifier_map Mod3 { <VOL-> };
+  };
+};

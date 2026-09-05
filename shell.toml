@@ -1,0 +1,127 @@
+# uConsole Clear: readable type without expanding every panel proportionally.
+[font]
+base-size = 20
+caption = 18
+body-small = 18
+body = 20
+subtitle = 21
+title = 22
+heading = 24
+display = 32
+display-large = 36
+icon-small = 19
+icon = 22
+icon-large = 25
+
+[spacing]
+scale = 1.0
+scale-with-font = false
+control-height = 36
+popup-row-height = 36
+control-padding-x = 10
+control-padding-y = 7
+input-padding-y = 8
+row-padding-x = 8
+row-gap = 6
+panel-padding = 14
+panel-gap = 12
+popup-padding = 12
+control-gap = 8
+label-gap = 6
+dropdown-width = 300
+searchable-dropdown-width = 320
+
+[bar]
+background = "#020304"
+background-alpha = 1.0
+text = "#F8F8F2"
+active = "#FFD166"
+scale-with-font = false
+size-horizontal = 38
+size-vertical = 42
+
+[controls]
+normal-color = "#F8F8F2"
+normal-fill-alpha = 0.05
+normal-border = "#C0C8CE"
+normal-border-width = 1
+normal-border-alpha = 0.7
+hover-cursor-color = "#FFD166"
+hover-cursor-fill-alpha = 0.16
+hover-cursor-border = "#FFD166"
+hover-cursor-border-width = 2
+hover-cursor-border-alpha = 1.0
+focus-color = "#FFD166"
+focus-fill-alpha = 0.16
+focus-border = "#FFD166"
+focus-border-width = 2
+focus-border-alpha = 1.0
+selected-color = "#F8F8F2"
+selected-fill-alpha = 0.2
+selected-border = "#FFD166"
+selected-border-width = 2
+selected-border-alpha = 1.0
+
+[popups]
+background = "#060709"
+background-alpha = 1.0
+text = "#F8F8F2"
+border = "#FFD166"
+border-alpha = 1.0
+border-width = 2
+
+[menu]
+background = "#060709"
+background-alpha = 1.0
+text = "#F8F8F2"
+border = "#FFD166"
+border-alpha = 1.0
+selected-background = "#FFD166"
+selected-background-alpha = 1.0
+selected-text = "#060709"
+selected-border = "#FFD166"
+selected-border-alpha = 1.0
+scrim = "#000000"
+scrim-alpha = 0.8
+
+[launcher]
+background = "#060709"
+background-alpha = 1.0
+text = "#F8F8F2"
+border = "#FFD166"
+border-alpha = 1.0
+selected-background = "#FFD166"
+selected-background-alpha = 1.0
+selected-text = "#060709"
+selected-border = "#FFD166"
+selected-border-alpha = 1.0
+scrim = "#000000"
+scrim-alpha = 0.8
+
+[notifications]
+background = "#151A1F"
+background-alpha = 1.0
+text = "#F8F8F2"
+border = "#FFD166"
+border-alpha = 1.0
+countdown = "#FFD166"
+
+[tooltip]
+background = "#151A1F"
+background-alpha = 1.0
+text = "#F8F8F2"
+border = "#C0C8CE"
+border-alpha = 1.0
+
+[lock]
+background = "#060709"
+background-alpha = 1.0
+text = "#F8F8F2"
+placeholder = "#CDD3D8"
+text-error = "#FF9991"
+border = "#C0C8CE"
+border-active = "#FFD166"
+border-error = "#FF9991"
+border-alpha = 1.0
+selection = "#FFD166"
+selection-alpha = 0.35

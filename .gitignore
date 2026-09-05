@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+*.key
+*.pem
+work/
+recovery/
+node_modules/
+.DS_Store

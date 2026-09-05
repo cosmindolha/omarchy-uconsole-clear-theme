@@ -1,0 +1,56 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,"><title>Theme colors</title>
+<style>
+:root{color-scheme:dark;font:20px system-ui,sans-serif;color:#f8f8f2;background:#060709;--accent:#ffd166;--ink:#060709}*{box-sizing:border-box}body{margin:0;display:grid;grid-template-columns:220px 1fr;height:100vh;overflow:hidden}button,input{font:inherit}button{cursor:pointer;background:#151a1f;color:inherit;border:1px solid #64717a;border-radius:7px;padding:10px;text-align:left}button:hover,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}aside{border-right:1px solid #53616b;padding:13px;display:flex;flex-direction:column;gap:10px;min-height:0}.label{font-size:17px;color:#c0c8ce}#presets{display:flex;flex-direction:column;gap:8px}#presets button{display:flex;align-items:center;gap:12px}.swatch{width:25px;height:25px;border-radius:5px;display:inline-block;border:1px solid #c0c8ce}#presets .chosen{border:2px solid var(--accent);padding:9px}#hex{width:100%;background:#101419;color:inherit;border:1px solid #64717a;border-radius:7px;padding:8px 10px;font-family:monospace;font-size:21px}#save{background:var(--accent);color:var(--ink);font-weight:700;text-align:center;margin-top:auto}#revert{text-align:center;padding:7px}main{padding:16px;display:flex;flex-direction:column;gap:14px;min-height:0}.preview{background:#060709;border:2px solid var(--accent);border-radius:8px;overflow:hidden;flex:1;min-height:130px;display:flex;flex-direction:column}.bar{padding:8px 13px;background:#020304;border-bottom:1px solid #53616b;display:flex;justify-content:space-between;font-size:18px}.desktop{padding:13px;font-family:monospace;font-size:21px;line-height:1.6}.accent{color:var(--accent)}.selected{background:var(--accent);color:var(--ink);padding:4px 12px;border-radius:5px;display:inline-block;font-family:system-ui,sans-serif}#picker{width:100%;height:140px;min-height:100px;max-height:160px;touch-action:none;cursor:crosshair;border-radius:8px;border:1px solid #71808a}#hue{appearance:none;width:100%;height:27px;margin:0;border-radius:6px;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);cursor:pointer}#hue::-webkit-slider-thumb{appearance:none;width:12px;height:34px;border-radius:4px;background:#fff;border:2px solid #060709}#status{font-size:17px;min-height:22px;color:#c0c8ce}button:disabled{opacity:.6;cursor:wait}
+#picker:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+</style>
+<aside><span class="label">Theme colors</span><div id="presets"></div><label class="label" for="hex">X · Hex color</label><input id="hex" value="#FFD166" maxlength="7" spellcheck="false" aria-label="Accent hex color"><button id="save">S · Save</button><button id="revert">R · Revert</button></aside>
+<main><div class="preview" aria-label="Theme preview"><div class="bar"><span>Menu　<span class="accent">[1]</span>　2　3</span><span>11:44　 Wi-Fi</span></div><div class="desktop"><span class="accent">~/projects $</span> ready<br>Readable text on near-black<br><span class="selected">Selected command</span></div></div><label class="label" for="picker">C · Color: ← → saturation · ↑ ↓ brightness</label><canvas id="picker" tabindex="0" aria-label="Custom color. Arrow keys adjust saturation and brightness" role="group"></canvas><label class="label" for="hue">H · Hue: ← →</label><input id="hue" type="range" min="0" max="360" value="42" aria-label="Hue"><div id="status" role="status">1–4 presets · Tab moves focus · Ctrl+S saves</div></main>
+<script>
+'use strict';
+function fit(){const z=Math.min(1,1.25/(devicePixelRatio||1));document.body.style.zoom=z;document.body.style.width=innerWidth/z+'px';document.body.style.height=innerHeight/z+'px';paintPicker();}
+const client=crypto.randomUUID(),canvas=document.querySelector('#picker'),ctx=canvas.getContext('2d'),hex=document.querySelector('#hex'),hue=document.querySelector('#hue'),status=document.querySelector('#status');
+let color='#FFD166',saved=color,seq=0,timer=null,h=42,s=.6,v=1,busy=false,presets={},dirty=false;
+function hsvHex(h,s,v){let f=n=>{const k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1));};return '#'+[f(5),f(3),f(1)].map(n=>Math.round(n*255).toString(16).padStart(2,'0')).join('').toUpperCase();}
+function toHSV(c){const [r,g,b]=c.slice(1).match(/../g).map(n=>parseInt(n,16)/255),max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;let a=0;if(d)a=max===r?((g-b)/d)%6:max===g?(b-r)/d+2:(r-g)/d+4;return [(a*60+360)%360,max?d/max:0,max];}
+function luminance(c){const a=c.slice(1).match(/../g).map(n=>parseInt(n,16)/255).map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4);return a[0]*.2126+a[1]*.7152+a[2]*.0722;}
+function readable(c){const rgb=c.slice(1).match(/../g).map(n=>parseInt(n,16));for(let i=0;i<=100;i++){const x='#'+rgb.map(n=>Math.round(n+(255-n)*i/100).toString(16).padStart(2,'0')).join('').toUpperCase();if((luminance(x)+.05)/(luminance('#060709')+.05)>=4.5)return x;}return '#FFFFFF';}
+function paintPicker(){if(!ctx)return;canvas.width=700;canvas.height=140;ctx.fillStyle=`hsl(${h} 100% 50%)`;ctx.fillRect(0,0,700,140);let g=ctx.createLinearGradient(0,0,700,0);g.addColorStop(0,'#fff');g.addColorStop(1,'#fff0');ctx.fillStyle=g;ctx.fillRect(0,0,700,140);g=ctx.createLinearGradient(0,0,0,140);g.addColorStop(0,'#0000');g.addColorStop(1,'#000');ctx.fillStyle=g;ctx.fillRect(0,0,700,140);ctx.beginPath();ctx.arc(s*700,(1-v)*140,7,0,Math.PI*2);ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();ctx.strokeStyle='#000';ctx.lineWidth=1;ctx.stroke();}
+function show(c,syncPicker=true){color=readable(c);hex.value=color;document.documentElement.style.setProperty('--accent',color);document.documentElement.style.setProperty('--ink','#060709');document.querySelectorAll('[data-color]').forEach(b=>b.classList.toggle('chosen',b.dataset.color===color));if(syncPicker){[h,s,v]=toHSV(color);hue.value=h;paintPicker();}}
+async function post(path,accent=color){const request=++seq;const response=await fetch('/api/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client,seq:request,accent})});const data=await response.json();if(!response.ok)throw Error(data.error||'Could not apply color');return request===seq?data:{stale:true};}
+function queue(){dirty=true;clearTimeout(timer);timer=setTimeout(async()=>{try{const data=await post('preview');if(!data.stale)status.textContent='Preview · not saved';}catch(e){status.textContent=e.message;}},220);}
+function choose(c){if(busy)return;show(c);queue();}
+function pick(e){if(busy)return;const r=canvas.getBoundingClientRect();s=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));v=Math.max(0,Math.min(1,1-(e.clientY-r.top)/r.height));show(hsvHex(h,s,v),false);paintPicker();queue();}
+canvas.onpointerdown=e=>{canvas.setPointerCapture(e.pointerId);pick(e);};canvas.onpointermove=e=>{if(e.buttons)pick(e);};hue.oninput=()=>{h=+hue.value;show(hsvHex(h,s,v),false);paintPicker();queue();};hex.onchange=()=>{if(/^#[\da-f]{6}$/i.test(hex.value))choose(hex.value.toUpperCase());else{status.textContent='Enter a color such as #8FC7FF';hex.value=color;}};
+async function commit(mode){if(mode==='apply'&&document.activeElement===hex){if(!/^#[\da-f]{6}$/i.test(hex.value)){status.textContent='Enter a color such as #8FC7FF';return;}show(hex.value.toUpperCase());hex.blur();}clearTimeout(timer);busy=true;document.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent=mode==='apply'?'Saving…':'Restoring…';try{const data=await post(mode);if(!data.stale){show(data.accent);saved=data.accent;dirty=false;status.textContent=mode==='apply'?'Saved':'Restored';}}catch(e){status.textContent=e.message;}finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=false);}}
+document.querySelector('#save').onclick=()=>commit('apply');document.querySelector('#revert').onclick=()=>commit('revert');
+fetch('/api/state').then(r=>r.json()).then(data=>{presets=data.presets;saved=data.accent;for(const [i,[name,c]] of Object.entries(presets).entries()){const b=document.createElement('button');b.dataset.color=c;const sw=document.createElement('span');sw.className='swatch';sw.style.background=c;b.append(sw,document.createTextNode((i+1)+' '+name[0].toUpperCase()+name.slice(1)));b.onclick=()=>choose(c);document.querySelector('#presets').append(b);}show(data.accent);document.querySelector('#presets button.chosen, #presets button').focus();}).catch(e=>status.textContent=e.message);
+document.addEventListener('keydown',e=>{
+ if(busy){if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s')e.preventDefault();return;}
+ const key=e.key.toLowerCase(),typing=e.target===hex;
+ if((e.ctrlKey||e.metaKey)&&key==='s'){e.preventDefault();commit('apply');return;}
+ if(e.key==='Escape'){e.preventDefault();commit('revert');return;}
+ if(typing){if(e.key==='Enter'){e.preventDefault();hex.blur();canvas.focus();}return;}
+ if(e.ctrlKey||e.altKey||e.metaKey)return;
+ const buttons=[...document.querySelectorAll('#presets button')];
+ if(/^[1-4]$/.test(key)){e.preventDefault();const b=buttons[+key-1];if(b){b.focus();b.click();}return;}
+ if(key==='s'){e.preventDefault();commit('apply');return;}
+ if(key==='r'||e.key==='Escape'){e.preventDefault();commit('revert');return;}
+ if(key==='c'){e.preventDefault();canvas.focus();return;}
+ if(key==='h'){e.preventDefault();hue.focus();return;}
+ if(key==='x'){e.preventDefault();hex.focus();hex.select();return;}
+ if(e.target===canvas&&e.key.startsWith('Arrow')){
+  e.preventDefault();const step=e.shiftKey ? 0.1 : 0.025;
+  if(e.key==='ArrowLeft')s=Math.max(0,s-step);if(e.key==='ArrowRight')s=Math.min(1,s+step);
+  if(e.key==='ArrowUp')v=Math.min(1,v+step);if(e.key==='ArrowDown')v=Math.max(0,v-step);
+  show(hsvHex(h,s,v),false);paintPicker();queue();return;
+ }
+ if(e.target===hue&&e.key.startsWith('Arrow')){
+  e.preventDefault();h=(h+(['ArrowLeft','ArrowDown'].includes(e.key)?-1:1)*(e.shiftKey?20:5)+360)%360;hue.value=h;show(hsvHex(h,s,v),false);paintPicker();queue();return;
+ }
+ if(e.key==='ArrowUp'||e.key==='ArrowDown'){
+  e.preventDefault();let i=buttons.indexOf(document.activeElement);i=(Math.max(0,i)+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;buttons[i].focus();buttons[i].click();
+ }
+});
+window.addEventListener('resize',fit);fit();window.themeEditor={choose,commit,get color(){return color;}};
+window.addEventListener('pagehide',()=>{clearTimeout(timer);if(dirty&&!busy)navigator.sendBeacon('/api/revert',new Blob([JSON.stringify({client,seq:++seq})],{type:'application/json'}));});
+</script></html>

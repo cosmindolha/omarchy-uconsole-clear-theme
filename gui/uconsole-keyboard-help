@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+systemctl --user start uconsole-theme-editor.service
+exec /usr/share/omarchy/bin/omarchy-launch-or-focus-webapp "Keybindings" "http://127.0.0.1:8768/keys"

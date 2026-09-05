@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "idle": {
+    "screensaver": 3600,
+    "lock": 3600
+  },
+  "bar": {
+    "position": "top",
+    "transparent": false,
+    "centerAnchor": "omarchy.clock",
+    "layout": {
+      "left": [
+        {
+          "id": "uconsole-menu",
+          "type": "qml",
+          "exec": "printf Menu",
+          "interval": 3600,
+          "tooltip": "Omarchy menu \u00b7 Super + Space",
+          "onClick": "omarchy-shell shell toggle omarchy.menu '{\"menu\":\"root\"}'",
+          "fontSize": 20,
+          "source": "~/.config/omarchy/bar/modules/uconsole-text.qml"
+        },
+        {
+          "id": "uconsole-workspaces",
+          "type": "qml"
+        },
+        {
+          "id": "uconsole-terminal",
+          "type": "qml",
+          "exec": "printf Term",
+          "interval": 3600,
+          "tooltip": "Open terminal \u00b7 Super + Enter",
+          "onClick": "omarchy-launch-terminal",
+          "fontSize": 20,
+          "source": "~/.config/omarchy/bar/modules/uconsole-text.qml"
+        },
+        {
+          "id": "uconsole-help",
+          "type": "qml",
+          "source": "~/.config/omarchy/bar/modules/uconsole-text.qml",
+          "text": "Keys",
+          "fontSize": 20,
+          "onClick": "uconsole-keyboard-help",
+          "tooltip": "Keybindings \u00b7 Right Alt + K"
+        }
+      ],
+      "center": [
+        {
+          "id": "omarchy.clock",
+          "format": "HH:mm",
+          "formatAlt": "ddd d MMM",
+          "verticalFormat": "HH:mm"
+        }
+      ],
+      "right": [
+        {
+          "id": "omarchy.network",
+          "type": "qml",
+          "exec": "~/.local/bin/uconsole-status network",
+          "interval": 10,
+          "fontSize": 20,
+          "source": "~/.config/omarchy/bar/modules/uconsole-text.qml",
+          "panelSource": "file:///usr/share/omarchy/shell/plugins/panels/network/Panel.qml"
+        },
+        {
+          "id": "omarchy.monitor",
+          "type": "qml",
+          "source": "~/.config/omarchy/bar/modules/uconsole-text.qml",
+          "text": "Light",
+          "fontSize": 20,
+          "panelSource": "file:///usr/share/omarchy/shell/plugins/panels/monitor/Panel.qml"
+        },
+        {
+          "id": "omarchy.bluetooth",
+          "type": "qml",
+          "source": "~/.config/omarchy/bar/modules/uconsole-text.qml",
+          "text": "BT",
+          "fontSize": 20,
+          "panelSource": "file:///usr/share/omarchy/shell/plugins/panels/bluetooth/Panel.qml"
+        },
+        {
+          "id": "omarchy.audio",
+          "type": "qml",
+          "exec": "~/.local/bin/uconsole-status audio",
+          "interval": 3,
+          "fontSize": 20,
+          "source": "~/.config/omarchy/bar/modules/uconsole-text.qml",
+          "panelSource": "file:///usr/share/omarchy/shell/plugins/panels/audio/Panel.qml"
+        },
+        {
+          "id": "omarchy.power",
+          "type": "qml",
+          "exec": "~/.local/bin/uconsole-status battery",
+          "interval": 15,
+          "fontSize": 20,
+          "source": "~/.config/omarchy/bar/modules/uconsole-text.qml",
+          "panelSource": "~/.config/omarchy/bar/modules/uconsole-battery.qml"
+        }
+      ]
+    }
+  },
+  "plugins": []
+}
