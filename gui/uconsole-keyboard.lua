@@ -6,6 +6,8 @@ hl.device({
 -- The speaker key is a separate HID consumer-control interface on this board.
 hl.device({
   name = "clockworkpi-uconsole-consumer-control",
+  -- Match the remapped Hyper_L symbol, not the original volume-down keycode.
+  resolve_binds_by_sym = true,
   kb_file = os.getenv("HOME") .. "/.config/hypr/uconsole.xkb",
 })
 

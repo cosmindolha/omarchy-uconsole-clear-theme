@@ -35,6 +35,8 @@ For the **base yellow theme alone**, use Omarchy's Install → Style → Theme w
 
 Right Alt becomes Super on the onboard keyboard. The speaker key becomes a held modifier on its separate consumer-control interface. The other keyboards retain their mappings. Left Alt alternatives can override an application's own Alt shortcuts. Stock game-button behavior is retained.
 
+The consumer-control device uses `resolve_binds_by_sym = true` so Hyprland matches its remapped modifier symbol. Without this, the original volume-down keycode can still trigger the stock repeating binding when the speaker key is held alone. See [Hyprland's symbol matching documentation](https://wiki.hypr.land/configuring/core/binds/keyboard-layouts/).
+
 ![Physical keyboard guide](screenshots/keyboard.png)
 
 The guide lists commands on the left and highlights the physical keys on the right. Normal keys are square. It prefers a modifier on the opposite side of the action key where possible, including Ctrl. Start typing to search immediately; the Find command field receives focus when the guide opens or regains focus. Typing after browsing commands also returns to search. Use Up/Down to browse and Esc to clear, or click a physical key to filter.
@@ -71,6 +73,6 @@ Designed for the 5-inch 1280×720 display at scale 1.25 (1024×576 logical). She
 
 User-owned files live in `~/.config/hypr`, `~/.config/omarchy`, `~/.local/bin` and `~/.local/share/uconsole`. Vendor Omarchy files are not overwritten. The full keybindings helper is generated from the installed upstream script with a compatibility correction for this release's Lua scanner.
 
-Validation: real desktop screenshots, user-confirmed physical shortcuts/readability, input events through the real consumer and keyboard devices (volume 0→5→0%), editor keyboard flows, and a normal reboot preserving theme, rotation and idle settings. The public toolkit installer was also run on the real device, retaining the saved custom purple accent and one-hour idle delay with no Hyprland configuration errors or failed user services. Run `python3 -m unittest discover -s tests` for the palette checks. This project is an experimental community adaptation, not an official Omarchy or ClockworkPi release.
+Validation: real desktop screenshots, user-confirmed physical shortcuts/readability, input events through the real consumer and keyboard devices (speaker alone held for 2 seconds stays at 50%; speaker+Up/Down gives 55%/45%; held chords repeat), editor keyboard flows, and a normal reboot preserving theme, rotation and idle settings. The public toolkit installer was also run on the real device, retaining the saved custom purple accent and one-hour idle delay with no Hyprland configuration errors or failed user services. Run `python3 -m unittest discover -s tests` for the palette checks. This project is an experimental community adaptation, not an official Omarchy or ClockworkPi release.
 
 MIT licensed. See [NOTICE](NOTICE) for upstream attribution. [Omarchy theme docs](https://omarchy.org/manual/making-your-own-theme/) · [ClockworkPi keyboard firmware](https://github.com/clockworkpi/uConsole/blob/master/Code/uconsole_keyboard/keymaps.ino).
