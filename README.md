@@ -49,7 +49,19 @@ Run `./scripts/install-voxtype.sh` as the desktop user to install the checksum-v
 
 Connect a USB microphone and select it as the default audio input. **Hold gamepad A** while speaking, then release it to transcribe and type into the focused text field. **Left Alt + D** remains a toggle alternative. The gamepad listener requires `python-evdev` and read access to the onboard gamepad (the tested user belongs to `input`). It recognizes the stock 20230713 firmware button code 289, independent of the ordinary typing A key, and reconnects after USB reattachment. The physical keyboard guide includes this shortcut. Speech recognition runs locally. Check `voxtype status`, `voxtype info devices`, and `journalctl --user -u voxtype` for diagnostics. A speaker-output monitor is not a microphone.
 
-### Dictation latency on CM5
+### Faster-whisper with English/Romanian settings (recommended on CM5)
+
+After installing Voxtype, run `./scripts/install-faster-whisper.sh`. This installs a checksum-verified ARM64 uv runtime, isolated Python 3.12 environment, pinned faster-whisper/CTranslate2 dependencies, and the pinned multilingual base model. It keeps the model loaded on the CPU using INT8 and four threads. Voxtype still handles the microphone, gamepad shortcut and typing, but sends transcription requests only to `127.0.0.1:8769`. Audio stays on the uConsole; the backend runs offline after installation. The previous Voxtype configuration is saved as `config.toml.before-faster-whisper`.
+
+**Menu → Setup → Dictation** opens the screen below. **1/E** saves English; **2/R** saves Romanian. Arrow keys and Enter also work. English is the initial default. Changes persist immediately without restarting the model; finish an active dictation before switching. Language detection is disabled. The backend reads `~/.config/uconsole/dictation.json` for the selected language, overriding Voxtype's cached language field. This also preserves Romanian as Romanian rather than translating it to English.
+
+![Dictation settings](screenshots/dictation.png)
+
+Measured on the CM5: a three-second English clip took 1.95 seconds, and the 11-second sample took 2.50 seconds in faster-whisper (2.75 seconds through Voxtype's local HTTP adapter), versus 12.71/13.09 seconds with the original whisper.cpp/automatic-language setup. These are sample timings, not a general accuracy or latency guarantee. The same multilingual base model is used; greedy decoding favors dictation latency.
+
+Diagnostics: `systemctl --user status uconsole-dictation voxtype`, `curl http://127.0.0.1:8769/health`. Replay a WAV without typing using `~/.local/share/uconsole/faster-whisper-venv/bin/python ~/.local/share/uconsole/dictation-server.py --file sample.wav --language ro`. Service logs record language, duration and timing without logging the transcript. The existing Voxtype daemon may separately log transcription text.
+
+### Original whisper.cpp latency on CM5
 
 The installer enables `whisper.context_window_optimization = true` for new configurations, keeping the multilingual base model. On the tested CM5, the same three-second English WAV took 12.71 seconds with stock settings and 7.76 seconds with short-clip optimization and automatic language detection. Fixing the language to English reduced that test to 1.53 seconds. These are processing times after release, not recording durations; other speech and languages can differ. The 11-second sample improved from 13.09 to 9.32 seconds with automatic detection retained.
 

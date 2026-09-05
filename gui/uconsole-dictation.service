@@ -1,0 +1,13 @@
+[Unit]
+Description=uConsole local faster-whisper speech engine
+PartOf=graphical-session.target
+Before=voxtype.service
+
+[Service]
+ExecStart=%h/.local/share/uconsole/faster-whisper-venv/bin/python %h/.local/share/uconsole/dictation-server.py
+Environment=HF_HUB_OFFLINE=1
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target
