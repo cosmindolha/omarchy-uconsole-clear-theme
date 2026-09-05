@@ -58,6 +58,7 @@ for(const k of keys){if(k.y>=99){k.y=120+Math.round((k.y-99)/42)*65;k.h=57;}}
 const actions=[
  {id:'menu',name:'Omarchy menu',group:'Daily',combo:'Right Alt + Space',keys:['alt-r','space'],note:'Open the main menu. Type to find an action, then press Enter.'},
  {id:'terminal',name:'Terminal',group:'Daily',combo:'Right Alt + Enter',keys:['alt-r','enter'],note:'Open a terminal at the comfortable 15 pt text size.'},
+ {id:'activity',name:'Activity / btop',group:'Daily',combo:'Right Alt + Ctrl + T',keys:['alt-r','ctrl-l','t'],note:'Open the btop system monitor for CPU, memory, disks, network and processes. Either Ctrl key works.'},
  {id:'browser',name:'Browser',group:'Daily',combo:'Right Alt + B',keys:['alt-r','b'],note:'Open your browser. Apps get a full-width column on this screen.'},
  {id:'files',name:'Files',group:'Daily',combo:'Right Alt + E',keys:['alt-r','e'],note:'Open the file manager.'},
  {id:'apps',name:'Apps',group:'Daily',combo:'Right Alt + A',keys:['alt-r','a'],note:'Find and open an installed application.'},
@@ -108,7 +109,7 @@ const keyIndex=new Map(keys.map(k=>[k.id,k]));
 for(const a of actions){
  const target=a.keys.filter(id=>!['alt-r','alt-l','ctrl-l','ctrl-r','shift-l','shift-r','fn-l','fn-r'].includes(id)).map(id=>keyIndex.get(id)).at(-1);
  if(!target)continue;
- if(a.keys.includes('alt-r')&&a.id!=='next-workspace'){
+ if(a.keys.includes('alt-r')&&!['next-workspace','activity'].includes(a.id)){
   const side=target.x>400?'alt-l':'alt-r';a.keys=a.keys.map(id=>id==='alt-r'?side:id);a.combo=a.combo.replace('Right Alt',side==='alt-l'?'Left Alt':'Right Alt');a.altAlternative=side==='alt-l'?'alt-r':'alt-l';
  }
  if(a.keys.includes('ctrl-l')){const side=target.x>400?'ctrl-l':'ctrl-r';a.keys=a.keys.map(id=>id==='ctrl-l'?side:id);}
